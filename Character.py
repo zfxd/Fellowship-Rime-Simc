@@ -20,10 +20,19 @@ class Character:
         self.mana = 0
         self.winter_orbs = 0
         self.spells = []  # This will hold the character's available spells
+        self.talents = [] # All the talents.
         self.anima_spikes = Spell("Anima Spikes", cast_time=0, cooldown=0, mana_generation=0, winter_orb_cost=0, damage_percent=36, hits=3)
+        self.soulfrost = Spell("Soulfrost Torrent", cast_time=2.0, cooldown=10, mana_generation=12, winter_orb_cost=0, damage_percent=690, channeled=True, ticks=12)
+        self.boosted_blast = Spell("Glacial Blast", cast_time=0, cooldown=0, mana_generation=0, winter_orb_cost=2, damage_percent=604)
+
+        self.soulfrost_buff = Spell("Soulfrost Torrent", isBuff=True, debuffDuration=100000)
+        self.glacial_assault_buff = Spell("Glacial Assault", isBuff=True, debuffDuration=100000)
 
     def add_spell(self, spell):
         self.spells.append(spell)
+    
+    def add_talent(self, talent):
+        self.talents.append(talent)
 
     def update_stats(self, intellect, crit, expertise, haste, spirit):
         self.intellect = intellect * Character.intellectPerPoint

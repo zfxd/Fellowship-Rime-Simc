@@ -16,11 +16,24 @@ def main():
     #character = Character(intellect=179, crit=20, expertise=76, haste=29, spirit=22)
     #Kalle
     #character = Character(intellect=270, crit=140, expertise=60, haste=60, spirit=40)
+    character = Character(intellect=270, crit=60, expertise=60, haste=140, spirit=40)
     #Rando
-    character = Character(intellect=316, crit=73, expertise=80, haste=142, spirit=50)
+    #character = Character(intellect=600, crit=100, expertise=100, haste=100, spirit=100)
+
+    ## Talents
+    ## Row 1
+    #character.add_talent("Chillblain") #I have not coded the AOE yet.
+    #character.add_talent("Coalescing Ice")
+    #character.add_talent("Glacial Assault")
+    ## Row 2
+    character.add_talent("Unrelenting Ice")
+    #character.add_talent("Icy Flow")
+    ## Row 3
+    #character.add_talent("Wisdom of the North")
+    #character.add_talent("Soulfrost Torrent")
     
     ## Spells casted in order.
-    #character.add_spell(Spell("Wrath of Winter", cast_time=0, cooldown=600, mana_generation=0, winter_orb_cost=0, damage_percent=0, isBuff=True, ticks=10, debuffDuration=20))
+    character.add_spell(Spell("Wrath of Winter", cast_time=0, cooldown=600, mana_generation=0, winter_orb_cost=0, damage_percent=0, isBuff=True, ticks=10, debuffDuration=20))
     character.add_spell(Spell("Ice Blitz", cast_time=0, cooldown=120, mana_generation=0, winter_orb_cost=0, damage_percent=0, isBuff=True, ticks=0, debuffDuration=20))
     character.add_spell(Spell("Dance of Swallows", cast_time=0, cooldown=60, mana_generation=0, winter_orb_cost=2, damage_percent=53, isDebuff=True, ticks=0, debuffDuration=20))
     character.add_spell(Spell("Cold Snap", cast_time=0, cooldown=8, mana_generation=0, winter_orb_cost=-1, damage_percent=204))  # Cold Snap spell
@@ -37,7 +50,7 @@ def main():
 
 def stat_weights(character):
     print("==== Doing Stat Weights ==== ")
-    statIncrease = 500
+    statIncrease = 50
     characterBase = character
     baseDPS = average_dps(characterBase)
 

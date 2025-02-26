@@ -1,6 +1,6 @@
 import random
 class Spell:
-    def __init__(self, name, cast_time, cooldown, mana_generation, winter_orb_cost, damage_percent, hits=1, channeled = False, ticks = 0, isDebuff = False, debuffDuration = 0, doDebuffDamage = False, isBuff = False):
+    def __init__(self, name = "", cast_time = 0, cooldown = 0, mana_generation = 0, winter_orb_cost = 0, damage_percent = 0, hits=1, channeled = False, ticks = 0, isDebuff = False, debuffDuration = 0, doDebuffDamage = False, isBuff = False):
         self.name = name
         self.base_cast_time = cast_time
         self.cooldown = cooldown
@@ -31,8 +31,6 @@ class Spell:
     def damage(self, character):
         base_damage = self.damage_percent * character.intellect
         modified_damage = base_damage * (1 + character.expertise / 100)
-        if random.uniform(0, 100) < character.crit:
-            modified_damage *= 2  # Critical hit
         return modified_damage
 
     def set_cooldown(self):
