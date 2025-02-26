@@ -20,7 +20,7 @@ class Spell:
         self.totalDamageDealt = 0
 
     def effective_cast_time(self, character):
-        return self.base_cast_time / (1 + character.haste / 100)
+        return self.base_cast_time * (1 - character.haste / 100)
 
     def is_ready(self, character):
         if self.winter_orb_cost <= character.winter_orbs:
