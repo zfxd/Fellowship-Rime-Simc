@@ -8,20 +8,8 @@ def main():
     print("Starting new Sim")
     print("----------------------------")
     ## Create your character below by plugging in their Point Stats, not % Stats.
-    #My personal character
-    #character = Character(intellect=157, crit=19, expertise=8, haste=36, spirit=29)
-    #Top player ATM
-    #character = Character(intellect=233, crit=26, expertise=64, haste=68, spirit=110)
-    #Aari
-    #character = Character(intellect=179, crit=20, expertise=76, haste=29, spirit=22)
-    #Kalle
-    #character = Character(intellect=270, crit=140, expertise=60, haste=60, spirit=40)
-    #Ettly
-    character = Character(intellect=296, crit=58, expertise=118, haste=154, spirit=89)
     #Test Character
-    #character = Character(intellect=270, crit=60, expertise=60, haste=140, spirit=40)
-    #Rando
-    #character = Character(intellect=600, crit=100, expertise=100, haste=100, spirit=100)
+    character = Character(intellect=300, crit=160, expertise=90, haste=120, spirit=50)
 
     ## Talents
     ## Row 1 - 2 Points Each
@@ -51,15 +39,15 @@ def main():
 
     ## Sim Options - Uncomment one to run.
     #average_dps(character,1)
-    average_dps(character,2)
+    average_dps(character,5)
     #stat_weights(character)
     #debug_sim(character)
 
 
 def stat_weights(character):
     print("==== Doing Stat Weights ==== ")
-    statIncrease = 50
-    target_count = 1
+    statIncrease = 200
+    target_count = 4
     characterBase = character
     baseDPS = average_dps(characterBase, target_count)
 

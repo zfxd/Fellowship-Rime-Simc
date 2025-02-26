@@ -22,7 +22,8 @@ class Character:
         self.spells = []  # This will hold the character's available spells
         self.talents = [] # All the talents.
         self.anima_spikes = Spell("Anima Spikes", cast_time=0, cooldown=0, mana_generation=0, winter_orb_cost=0, damage_percent=36, hits=3)
-        self.soulfrost = Spell("Soulfrost Torrent", cast_time=2.0, cooldown=10, mana_generation=12, winter_orb_cost=0, damage_percent=690, channeled=True, ticks=12)
+        #Damage is set to 1560 because of ingame bug.
+        self.soulfrost = Spell("Soulfrost Torrent", cast_time=2.0, cooldown=10, mana_generation=12, winter_orb_cost=0, damage_percent=1560, channeled=True, ticks=12)
         self.boosted_blast = Spell("Glacial Blast", cast_time=0, cooldown=0, mana_generation=0, winter_orb_cost=2, damage_percent=604)
 
         self.soulfrost_buff = Spell("Soulfrost Torrent", isBuff=True, debuffDuration=100000)
