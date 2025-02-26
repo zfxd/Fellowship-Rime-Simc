@@ -35,9 +35,18 @@ class Simulation:
             # If we have Wrath of Winter active. Deal 15% more damage.
             if buff.name == "Wrath of Winter":
                 damage *= 1.15
+            if buff.name == "Ice Blitz":
+                damage *= 1.15
 
         self.total_damage += damage
         self.character.mana += anima_gained
+        for buff in self.buffs[:]:
+            if buff.name == "Ice Blitz":
+                for i in range(int(anima_gained)):
+                    damage = self.character.anima_spikes.damage(self.character)
+                    self.total_damage += damage
+                    if self.doDebug: print(f'Time {self.time:.2f}: Cast {self.character.anima_spikes.name}, dealing {damage:.2f} damage')
+
         if self.doDebug: 
             if isCast: print(f'Time {self.time:.2f}: Your {spell.name} hit for {damage:.2f} damage')
             else: print(f'Time {self.time:.2f}: Your {spell.name} ticks for {damage:.2f} damage')
