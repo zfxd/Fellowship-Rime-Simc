@@ -1,6 +1,6 @@
 import random
 class Spell:
-    def __init__(self, name = "", cast_time = 0, cooldown = 0, mana_generation = 0, winter_orb_cost = 0, damage_percent = 0, hits=1, channeled = False, ticks = 0, isDebuff = False, debuffDuration = 0, doDebuffDamage = False, isBuff = False):
+    def __init__(self, name = "", cast_time = 0, cooldown = 0, mana_generation = 0, winter_orb_cost = 0, damage_percent = 0, hits=1, channeled = False, ticks = 0, isDebuff = False, debuffDuration = 0, doDebuffDamage = False, isBuff = False, min_target_count = 1, max_target_count = 1000):
         self.name = name
         self.base_cast_time = cast_time
         self.cooldown = cooldown
@@ -18,14 +18,17 @@ class Spell:
         self.doDebuffDamage = doDebuffDamage
         self.isBuff = isBuff
         self.totalDamageDealt = 0
+        self.min_target_count = min_target_count #Minimum Needed Targets to cast this on.
+        self.max_target_count = max_target_count #Maximum Needed Targets to cast this on.
 
     def effective_cast_time(self, character):
         return self.base_cast_time * (1 - character.haste / 100)
 
-    def is_ready(self, character):
-        if self.winter_orb_cost <= character.winter_orbs:
-            if self.remaining_cooldown <= 0:
-                return True
+    def is_ready(self, character, enemy_count):
+        if enemy_count >= self.min_target_count and enemy_count <= self.max_target_count:
+            if self.winter_orb_cost <= character.winter_orbs:
+                if self.remaining_cooldown <= 0:
+                    return True
         return False
     
     def damage(self, character):

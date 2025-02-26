@@ -3,7 +3,7 @@ from Spell import Spell
 from copy import copy
 
 class Simulation:
-    def __init__(self, character, duration, doDebug = True):
+    def __init__(self, character, duration, enemyCount = 1, doDebug = True):
         self.character = character
         self.time = 0
         self.duration = duration
@@ -12,6 +12,7 @@ class Simulation:
         self.gcd = 0
         self.debuffs = []
         self.buffs = []
+        self.enemyCount = enemyCount
 
     # Whenever we gain orbs, we want to cast 3 Anime Spikes.
     def gain_orb(self, doSpikes = True):
@@ -59,6 +60,13 @@ class Simulation:
         if spell.name == "Bursting Ice" and "Coalescing Ice" in self.character.talents:
             damage *= 1.2
 
+        if "Avalanche" in self.character.talents and spell.name == "Ice Comet":
+            if random.uniform(0, 100) < 30:
+                if random.uniform(0, 100) < 8:
+                    damage *= 3
+                else:
+                    damage *= 2
+
         if spell.name == "Cold Snap" and "Glacial Assault" in self.character.talents:
             self.character.glacial_assault_buff.apply_debuff()
             self.buffs.append(self.character.glacial_assault_buff)
@@ -73,32 +81,42 @@ class Simulation:
                 if spell.name == "Freezing Torrent":
                     spell.update_cooldown(0.2)
 
-        # Crit Calcs
-        critChance = self.character.crit
+        aoeCount = 1
+        if spell.name == "Ice Comet":
+            aoeCount = self.enemyCount
+        if (spell.name == "Soulfrost Torrent" or spell.name == "Freezing Torrent") and "Chillblain" in self.character.talents:
+            aoeCount = min(self.enemyCount, 5)
+        if (spell.name == "Bursting Ice"):
+            aoeCount = self.enemyCount
 
-        # Check if Soulfrost Torrent to modify Anima Spikes.
-        if "Soulfrost Torrent" in self.character.talents and (spell.name == "Anima Spikes" or spell.name == "Dance of Swallows"):
-            critChance += 10
-        if spell.name == "Glacial Blast" and "Glacial Assault" in self.character.talents:
-            critChance += 20
+        for i in range(aoeCount):
+            # Crit Calcs
+            critChance = self.character.crit
 
-        # Roll the Crit.    
-        if random.uniform(0, 100) < critChance:
-            damage *= 2  # Critical hit
-            # Roll for Soulfrost Torrent buff.
-            canApply = True
-            if "Soulfrost Torrent" in self.character.talents and random.uniform(0,100) < 25:
-                for buff in self.buffs:
-                    if buff.name == "Soulfrost Torrent": canApply = False
-                if canApply:
-                    self.character.soulfrost_buff.apply_debuff()
-                    self.buffs.append(self.character.soulfrost_buff)
-        
-        #Do other stuff.
-        self.total_damage += damage
+            # Check if Soulfrost Torrent to modify Anima Spikes.
+            if "Soulfrost Torrent" in self.character.talents and (spell.name == "Anima Spikes" or spell.name == "Dance of Swallows"):
+                critChance += 10
+            if spell.name == "Glacial Blast" and "Glacial Assault" in self.character.talents:
+                critChance += 20
 
-        #TODO: Check if its only one target.
-        if spell.name == "Bursting Ice" and "Coalescing Ice" in self.character.talents:
+            # Roll the Crit.    
+            if random.uniform(0, 100) < critChance:
+                damage *= 2  # Critical hit
+                # Roll for Soulfrost Torrent buff.
+                canApply = True
+                if "Soulfrost Torrent" in self.character.talents and random.uniform(0,100) < 25:
+                    for buff in self.buffs:
+                        if buff.name == "Soulfrost Torrent": canApply = False
+                    if canApply:
+                        self.character.soulfrost_buff.apply_debuff()
+                        self.buffs.append(self.character.soulfrost_buff)
+
+            #Do other stuff.
+            if (spell.name == "Soulfrost Torrent" or spell.name == "Freezing Torrent") and "Chillblain" in self.character.talents and i != 0:
+                damage = damage * 0.2
+            self.total_damage += damage
+
+        if spell.name == "Bursting Ice" and "Coalescing Ice" in self.character.talents and self.enemyCount == 1:
             self.character.mana += 2
         self.character.mana += anima_gained
         for buff in self.buffs[:]:
@@ -187,7 +205,7 @@ class Simulation:
 
             #Locate a spell that we can cast.
             for candidate_spell in self.character.spells:
-                if candidate_spell.is_ready(self.character):
+                if candidate_spell.is_ready(self.character, self.enemyCount):
                     spell = candidate_spell
                     break
             

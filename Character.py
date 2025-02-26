@@ -27,6 +27,7 @@ class Character:
 
         self.soulfrost_buff = Spell("Soulfrost Torrent", isBuff=True, debuffDuration=100000)
         self.glacial_assault_buff = Spell("Glacial Assault", isBuff=True, debuffDuration=100000)
+        self.cometBonus = Spell("Ice Comet", cast_time=0, cooldown=0, mana_generation=0, winter_orb_cost=0, damage_percent=300)
 
     def add_spell(self, spell):
         self.spells.append(spell)
