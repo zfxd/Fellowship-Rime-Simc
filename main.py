@@ -8,7 +8,7 @@ from characters.Rime import RimeSpell
 from Sim import Simulation
 
 
-def main(args: argparse.Namespace):
+def main(arguments: argparse.Namespace):
     """Main function."""
 
     print("----------------------------")
@@ -48,9 +48,9 @@ def main(args: argparse.Namespace):
     character.add_spell_to_rotation(RimeSpell.FROST_BOLT)
 
     # Sim Options - Uncomment one to run.
-    match args.simulation_type:
+    match arguments.simulation_type:
         case "average_dps":
-            average_dps(character, args.enemy_count)
+            average_dps(character, arguments.enemy_count)
         case "stat_weights":
             stat_weights(character)
         case "debug_sim":
