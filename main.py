@@ -13,11 +13,11 @@ def main():
 
     ## Talents
     ## Row 1 - 2 Points Each
-    character.add_talent("Chillblain") #I have not coded the AOE yet.
-    character.add_talent("Coalescing Ice")
+    character.add_talent("Chillblain")
+    #character.add_talent("Coalescing Ice")
     #character.add_talent("Glacial Assault") #Doodoo
     ## Row 2 - 1 Point Each
-    #character.add_talent("Unrelenting Ice")
+    character.add_talent("Unrelenting Ice")
     character.add_talent("Icy Flow")
     ## Row 3 - 3 Points Each
     #character.add_talent("Wisdom of the North")
@@ -31,7 +31,7 @@ def main():
     #character.add_spell(Spell("Ice Comet", cast_time=0, cooldown=0, mana_generation=0, winter_orb_cost=3, damage_percent=300))
     #character.add_spell(Spell("Glacial Blast", cast_time=2.0, cooldown=0, mana_generation=0, winter_orb_cost=2, damage_percent=504))
     character.add_spell(Spell("Cold Snap", cast_time=0, cooldown=8, mana_generation=0, winter_orb_cost=-1, damage_percent=204))  # Cold Snap spell
-    character.add_spell(Spell("Bursting Ice", cast_time=2.0, cooldown=10, mana_generation=6, winter_orb_cost=0, damage_percent=366, isDebuff=True, ticks=6, debuffDuration=3, doDebuffDamage=True))
+    character.add_spell(Spell("Bursting Ice", cast_time=2.0, cooldown=15, mana_generation=6, winter_orb_cost=0, damage_percent=366, isDebuff=True, ticks=6, debuffDuration=3, doDebuffDamage=True))
     character.add_spell(Spell("Ice Comet", cast_time=0, cooldown=0, mana_generation=0, winter_orb_cost=3, damage_percent=300, min_target_count=2, max_target_count=1000))
     character.add_spell(Spell("Glacial Blast", cast_time=2.0, cooldown=0, mana_generation=0, winter_orb_cost=2, damage_percent=504, min_target_count=1, max_target_count=2))
     character.add_spell(Spell("Freezing Torrent", cast_time=2.0, cooldown=10, mana_generation=6, winter_orb_cost=0, damage_percent=390, channeled=True, ticks=6))

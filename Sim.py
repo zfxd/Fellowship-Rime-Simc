@@ -213,7 +213,7 @@ class Simulation:
                 if self.doDebug: print(f'Time {self.time:.2f}: No ready spell available')
                 continue
 
-            self.gcd = 1 / (1 + self.character.haste / 100)
+            self.gcd = 1.5 / (1 + self.character.haste / 100)
 
             #Update the cooldown on the spell.
             if self.doDebug: print(f'Time {self.time:.2f}: Cast {spell.name}.')
