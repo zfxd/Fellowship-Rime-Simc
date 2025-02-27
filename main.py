@@ -5,21 +5,61 @@ from copy import copy
 
 from base import Character
 from characters.Rime import RimeSpell, RimeTalent
+from characters.Rime.preset import RimePreset
 from Sim import Simulation
 
 
 def main(arguments: argparse.Namespace):
     """Main function."""
 
+    if arguments.preset and arguments.custom_character:
+        raise ValueError(
+            "Cannot provide both preset and custom character. "
+            + "Please provide only one."
+        )
+
     print("----------------------------")
     print("Starting new Sim")
     print("----------------------------")
-    # Create your character below by
-    # plugging in their Point Stats, not % Stats.
-    # Test Character
-    character = Character(
-        intellect=300, crit=160, expertise=90, haste=120, spirit=50
-    )
+
+    if arguments.custom_character:
+        print(f"Using custom character: {arguments.custom_character}")
+        try:
+            stats = [
+                int(stat) for stat in arguments.custom_character.split("-")
+            ]
+        except ValueError as e:
+            raise ValueError(
+                "Custom character must be formatted as "
+                + "intellect-crit-expertise-haste-spirit"
+            ) from e
+
+        if len(stats) != 5:
+            raise ValueError(
+                "Custom character must be formatted as "
+                + "intellect-crit-expertise-haste-spirit"
+            )
+        for stat in stats:
+            if stat < 0:
+                raise ValueError(
+                    "All stats must be positive integers. "
+                    + f"Invalid stat: {stat}"
+                )
+
+        character = Character(
+            intellect=stats[0],
+            crit=stats[1],
+            expertise=stats[2],
+            haste=stats[3],
+            spirit=stats[4],
+        )
+    if arguments.preset:
+        # Use preset if provided.
+        print(f"Using preset: {arguments.preset}")
+        character = RimePreset[arguments.preset].value
+    else:
+        print("No preset or custom character provided. Using default.")
+        character = RimePreset.DEFAULT.value
 
     # Parse the talent tree argument.
     # e.g. Combination of "2-12-3" means Talent 1.2, 2.1, 2.2, 3.3
@@ -178,6 +218,23 @@ if __name__ == "__main__":
         default="",
         help="Talent tree to use. Format: (row1-row2-row3), "
         + "e.g., 13-1-2 means Talent 1.1, Talent 1.3, Talent 2.1, Talent 3.2",
+    )
+    parser.add_argument(
+        "-p",
+        "--preset",
+        type=str,
+        default="",
+        help="Preset to use. Possible values: "
+        + ",".join([preset.name for preset in RimePreset]),
+        choices=[preset.name for preset in RimePreset],
+    )
+    parser.add_argument(
+        "-c",
+        "--custom-character",
+        type=str,
+        default="",
+        help="Custom character to use. "
+        + "Format: intellect-crit-expertise-haste-spirit",
     )
 
     # Parse arguments.

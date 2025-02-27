@@ -1,4 +1,4 @@
 """Module for the Rime character."""
 
-from .spells import RimeSpell, RimeBuff
-from .talents import RimeTalent
+from .spell import RimeSpell, RimeBuff
+from .talent import RimeTalent
