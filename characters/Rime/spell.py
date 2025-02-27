@@ -58,6 +58,8 @@ class RimeSpell(Enum):
         mana_generation=0,
         winter_orb_cost=3,
         damage_percent=300,
+        min_target_count=3,
+        max_target_count=1000,
     )
     GLACIAL_BLAST = Spell(
         "Glacial Blast",
@@ -66,6 +68,8 @@ class RimeSpell(Enum):
         mana_generation=0,
         winter_orb_cost=2,
         damage_percent=504,
+        min_target_count=1,
+        max_target_count=2,
     )
     BURSTING_ICE = Spell(
         "Bursting Ice",
@@ -73,7 +77,7 @@ class RimeSpell(Enum):
         cooldown=15,
         mana_generation=6,
         winter_orb_cost=0,
-        damage_percent=366,
+        damage_percent=390,
         is_debuff=True,
         ticks=6,
         debuff_duration=3,
@@ -108,7 +112,7 @@ class RimeSpell(Enum):
     )
     SOULFROST_TORRENT = Spell(
         "Soulfrost Torrent",
-        cast_time=2.0,
+        cast_time=4.0,
         cooldown=10,
         mana_generation=12,
         winter_orb_cost=0,

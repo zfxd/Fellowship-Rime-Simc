@@ -78,9 +78,9 @@ def main(arguments: argparse.Namespace):
     # character.add_spell(RimeSpell.GLACIAL_BLAST)
     character.add_spell_to_rotation(RimeSpell.COLD_SNAP)
     character.add_spell_to_rotation(RimeSpell.BURSTING_ICE)
+    character.add_spell_to_rotation(RimeSpell.FREEZING_TORRENT)
     character.add_spell_to_rotation(RimeSpell.ICE_COMET)
     character.add_spell_to_rotation(RimeSpell.GLACIAL_BLAST)
-    character.add_spell_to_rotation(RimeSpell.FREEZING_TORRENT)
     character.add_spell_to_rotation(RimeSpell.FROST_BOLT)
 
     # Sim Options - Uncomment one to run.
