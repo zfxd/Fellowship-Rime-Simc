@@ -4,7 +4,7 @@ import argparse
 from copy import copy
 
 from base import Character
-from characters.Rime import RimeSpell
+from characters.Rime import RimeSpell, RimeTalent
 from Sim import Simulation
 
 
@@ -21,18 +21,16 @@ def main(arguments: argparse.Namespace):
         intellect=300, crit=160, expertise=90, haste=120, spirit=50
     )
 
-    # Talents
-    # Row 1 - 2 Points Each
-    # character.add_talent("Chillblain")
-    character.add_talent("Coalescing Ice")
-    # character.add_talent("Glacial Assault") #Doodoo
-    # Row 2 - 1 Point Each
-    character.add_talent("Unrelenting Ice")
-    character.add_talent("Icy Flow")
-    # Row 3 - 3 Points Each
-    # character.add_talent("Wisdom of the North")
-    # character.add_talent("Avalanche")
-    character.add_talent("Soulfrost Torrent")
+    # Parse the talent tree argument.
+    # e.g. Combination of "2-12-3" means Talent 1.2, 2.1, 2.2, 3.3
+    # = Coalescing Ice, Unrelenting Ice, Icy Flow, Soulfrost Torrent
+    if arguments.talent_tree:
+        talents = arguments.talent_tree.split("-")
+        for index, talent in enumerate(talents):
+            for i in talent:
+                rime_talent = RimeTalent.get_by_identifier(f"{index+1}.{i}")
+                if rime_talent:
+                    character.add_talent(rime_talent.value.name)
 
     # Spells casted in order.
     character.add_spell_to_rotation(RimeSpell.WRATH_OF_WINTER)
@@ -66,55 +64,45 @@ def stat_weights(character: Character) -> None:
     character_base = character
     base_dps = average_dps(character_base, target_count)
 
-    character_updated = character
-    character_updated.update_stats(
-        intellect=character_updated.intellect_points + stat_increase,
-        crit=character_updated.crit_points,
-        expertise=character_updated.expertise_points,
-        haste=character_updated.haste_points,
-        spirit=character_updated.spirit_points,
-    )
-    int_dps = average_dps(character_updated, target_count)
+    def update_stats(
+        character: Character, stat_increase: int, stat_name: str
+    ) -> float:
+        character_updated = character
+        character_updated.update_stats(
+            intellect=(
+                character_updated.intellect_points + stat_increase
+                if stat_name == "intellect"
+                else character_updated.intellect_points
+            ),
+            crit=(
+                character_updated.crit_points + stat_increase
+                if stat_name == "crit"
+                else character_updated.crit_points
+            ),
+            expertise=(
+                character_updated.expertise_points + stat_increase
+                if stat_name == "expertise"
+                else character_updated.expertise_points
+            ),
+            haste=(
+                character_updated.haste_points + stat_increase
+                if stat_name == "haste"
+                else character_updated.haste_points
+            ),
+            spirit=(
+                character_updated.spirit_points + stat_increase
+                if stat_name == "spirit"
+                else character_updated.spirit_points
+            ),
+        )
 
-    character_updated = character
-    character_updated.update_stats(
-        intellect=character_updated.intellect_points,
-        crit=character_updated.crit_points + stat_increase,
-        expertise=character_updated.expertise_points,
-        haste=character_updated.haste_points,
-        spirit=character_updated.spirit_points,
-    )
-    crit_dps = average_dps(character_updated, target_count)
+        return average_dps(character_updated, target_count)
 
-    character_updated = character
-    character_updated.update_stats(
-        intellect=character_updated.intellect_points,
-        crit=character_updated.crit_points,
-        expertise=character_updated.expertise_points + stat_increase,
-        haste=character_updated.haste_points,
-        spirit=character_updated.spirit_points,
-    )
-    expertise_dps = average_dps(character_updated, target_count)
-
-    character_updated = character
-    character_updated.update_stats(
-        intellect=character_updated.intellect_points,
-        crit=character_updated.crit_points,
-        expertise=character_updated.expertise_points,
-        haste=character_updated.haste_points + stat_increase,
-        spirit=character_updated.spirit_points,
-    )
-    haste_dps = average_dps(character_updated, target_count)
-
-    character_updated = character
-    character_updated.update_stats(
-        intellect=character_updated.intellect_points,
-        crit=character_updated.crit_points,
-        expertise=character_updated.expertise_points,
-        haste=character_updated.haste_points,
-        spirit=character_updated.spirit_points + stat_increase,
-    )
-    spirit_dps = average_dps(character_updated, target_count)
+    int_dps = update_stats(character, stat_increase, "intellect")
+    crit_dps = update_stats(character, stat_increase, "crit")
+    expertise_dps = update_stats(character, stat_increase, "expertise")
+    haste_dps = update_stats(character, stat_increase, "haste")
+    spirit_dps = update_stats(character, stat_increase, "spirit")
 
     print("--------------")
     print("Stat Weights:")
@@ -182,6 +170,14 @@ if __name__ == "__main__":
         type=int,
         default=1,
         help="Number of enemies to simulate.",
+    )
+    parser.add_argument(
+        "-t",
+        "--talent-tree",
+        type=str,
+        default="",
+        help="Talent tree to use. Format: (row1-row2-row3), "
+        + "e.g., 13-1-2 means Talent 1.1, Talent 1.3, Talent 2.1, Talent 3.2",
     )
 
     # Parse arguments.
