@@ -1,10 +1,11 @@
 """Module for the Character class."""
 
-from typing import List
+from typing import List, TYPE_CHECKING
 
-from characters.Rime import RimeSpell
+from characters.Rime import RimeSpell, RimeBuff
 
-from .spell import Spell
+if TYPE_CHECKING:
+    from .spell import Spell
 
 
 class Character:
@@ -40,49 +41,14 @@ class Character:
         self.rotation: List[Spell] = []
         # All the talents.
         self.talents: List[str] = []
-        self.anima_spikes = Spell(
-            "Anima Spikes",
-            cast_time=0,
-            cooldown=0,
-            mana_generation=0,
-            winter_orb_cost=0,
-            damage_percent=36,
-            hits=3,
-        )
-        # Damage is set to 1560 because of ingame bug.
-        self.soulfrost = Spell(
-            "Soulfrost Torrent",
-            cast_time=2.0,
-            cooldown=10,
-            mana_generation=12,
-            winter_orb_cost=0,
-            damage_percent=1560,
-            channeled=True,
-            ticks=12,
-        )
-        self.boosted_blast = Spell(
-            "Glacial Blast",
-            cast_time=0,
-            cooldown=0,
-            mana_generation=0,
-            winter_orb_cost=2,
-            damage_percent=604,
-        )
 
-        self.soulfrost_buff = Spell(
-            "Soulfrost Torrent", is_buff=True, debuff_duration=100000
-        )
-        self.glacial_assault_buff = Spell(
-            "Glacial Assault", is_buff=True, debuff_duration=100000
-        )
-        self.comet_bonus = Spell(
-            "Ice Comet",
-            cast_time=0,
-            cooldown=0,
-            mana_generation=0,
-            winter_orb_cost=0,
-            damage_percent=300,
-        )
+        self.anima_spikes = RimeSpell.ANIMA_SPIKES.value
+        self.soulfrost = RimeSpell.SOULFROST_TORRENT.value
+        self.boosted_blast = RimeBuff.BOOSTED_BLAST.value
+
+        self.soulfrost_buff = RimeBuff.SOULFROST_BUFF.value
+        self.glacial_assault_buff = RimeBuff.GLACIAL_ASSAULT_BUFF.value
+        self.comet_bonus = RimeBuff.COMET_BONUS.value
 
     def add_spell_to_rotation(self, spell: RimeSpell) -> None:
         """Adds a spell to the character's rotation."""

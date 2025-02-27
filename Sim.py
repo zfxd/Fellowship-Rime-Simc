@@ -122,6 +122,8 @@ class Simulation:
             spell.name in ("Soulfrost Torrent", "Freezing Torrent")
             and "Unrelenting Ice" in self.character.talents
         ):
+            # The previous name "spell" colidited with
+            # already defined variable.
             for character_spell in self.character.rotation:
                 if character_spell.name == "Bursting Ice":
                     character_spell.update_cooldown(0.5)
@@ -129,6 +131,8 @@ class Simulation:
         if "Icy Flow" in self.character.talents and (
             spell.name in ("Anima Spikes", "Dance of Swallows")
         ):
+            # The previous name "spell" colidited with
+            # already defined variable.
             for character_spell in self.character.rotation:
                 if character_spell.name == "Freezing Torrent":
                     character_spell.update_cooldown(0.2)

@@ -1,3 +1,3 @@
 """Module for the Rime character."""
 
-from .spells import RimeSpell
+from .spells import RimeSpell, RimeBuff

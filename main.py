@@ -141,6 +141,8 @@ def average_dps(character: Character, enemy_count: int) -> float:
     dps_lowest = 1000000
     dps_highest = 0
     for _ in range(run_count):
+        # NOTE: This is a shallow copy, not deep copy.
+        # Review if this is intented :)
         character_copy = copy(character)
         sim = Simulation(
             character_copy,

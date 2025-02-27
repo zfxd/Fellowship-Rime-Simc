@@ -97,3 +97,51 @@ class RimeSpell(Enum):
         winter_orb_cost=0,
         damage_percent=73,
     )
+    ANIMA_SPIKES = Spell(
+        "Anima Spikes",
+        cast_time=0,
+        cooldown=0,
+        mana_generation=0,
+        winter_orb_cost=0,
+        damage_percent=36,
+        hits=3,
+    )
+    SOULFROST_TORRENT = Spell(
+        "Soulfrost Torrent",
+        cast_time=2.0,
+        cooldown=10,
+        mana_generation=12,
+        winter_orb_cost=0,
+        damage_percent=1560,  # Damage is set to 1560 because of ingame bug.
+        channeled=True,
+        ticks=12,
+    )
+
+
+class RimeBuff(Enum):
+    """
+    Enum for all the buffs in Rime.
+    """
+
+    SOULFROST_BUFF = Spell(
+        "Soulfrost Buff", is_buff=True, debuff_duration=100000
+    )
+    GLACIAL_ASSAULT_BUFF = Spell(
+        "Glacial Assault", is_buff=True, debuff_duration=100000
+    )
+    COMET_BONUS = Spell(
+        "Ice Comet",
+        cast_time=0,
+        cooldown=0,
+        mana_generation=0,
+        winter_orb_cost=0,
+        damage_percent=300,
+    )
+    BOOSTED_BLAST = Spell(
+        "Glacial Blast",
+        cast_time=0,
+        cooldown=0,
+        mana_generation=0,
+        winter_orb_cost=2,
+        damage_percent=604,
+    )
