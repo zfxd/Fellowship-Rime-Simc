@@ -13,8 +13,8 @@ def main():
 
     ## Talents
     ## Row 1 - 2 Points Each
-    character.add_talent("Chillblain")
-    #character.add_talent("Coalescing Ice")
+    #character.add_talent("Chillblain")
+    character.add_talent("Coalescing Ice")
     #character.add_talent("Glacial Assault") #Doodoo
     ## Row 2 - 1 Point Each
     character.add_talent("Unrelenting Ice")
