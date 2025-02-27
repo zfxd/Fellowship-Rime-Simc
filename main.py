@@ -1,6 +1,7 @@
 """Main file for simulating Character DPS."""
 
 import argparse
+from typing import Optional
 from copy import copy
 
 from base import Character
@@ -18,12 +19,11 @@ def main(arguments: argparse.Namespace):
             + "Please provide only one."
         )
 
-    print("----------------------------")
-    print("Starting new Sim")
-    print("----------------------------")
+    print("------------------")
+    print(" Starting new Sim")
+    print("------------------")
 
     if arguments.custom_character:
-        print(f"Using custom character: {arguments.custom_character}")
         try:
             stats = [
                 int(stat) for stat in arguments.custom_character.split("-")
@@ -55,10 +55,8 @@ def main(arguments: argparse.Namespace):
         )
     if arguments.preset:
         # Use preset if provided.
-        print(f"Using preset: {arguments.preset}")
         character = RimePreset[arguments.preset].value
     else:
-        print("No preset or custom character provided. Using default.")
         character = RimePreset.DEFAULT.value
 
     # Parse the talent tree argument.
@@ -136,7 +134,7 @@ def stat_weights(character: Character) -> None:
             ),
         )
 
-        return average_dps(character_updated, target_count)
+        return average_dps(character_updated, target_count, stat_name)
 
     int_dps = update_stats(character, stat_increase, "intellect")
     crit_dps = update_stats(character, stat_increase, "crit")
@@ -161,8 +159,13 @@ def debug_sim(character: Character) -> None:
     sim.run()
 
 
-def average_dps(character: Character, enemy_count: int) -> float:
+def average_dps(
+    character: Character, enemy_count: int, stat_name: Optional[str] = None
+) -> float:
     """Runs a simulation and returns the average DPS."""
+
+    if stat_name:
+        print(f"Stat Weight: {stat_name}\n-------------")
 
     run_count = 2000
     dps_running_total = 0
@@ -184,9 +187,10 @@ def average_dps(character: Character, enemy_count: int) -> float:
 
         dps_running_total += dps
     avg_dps = dps_running_total / run_count
+
     print(f"Highest DPS: {dps_highest:.2f}")
     print(f"Average DPS: {avg_dps:.2f}")
-    print(f"Lowest DPS: {dps_lowest:.2f}")
+    print(f"Lowest DPS: {dps_lowest:.2f}\n")
 
     return avg_dps
 
