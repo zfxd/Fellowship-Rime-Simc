@@ -1,5 +1,6 @@
 """Main file for simulating Character DPS."""
 
+import argparse
 from copy import copy
 
 from base import Character
@@ -7,7 +8,7 @@ from characters.Rime import RimeSpell
 from Sim import Simulation
 
 
-def main():
+def main(args: argparse.Namespace):
     """Main function."""
 
     print("----------------------------")
@@ -47,10 +48,13 @@ def main():
     character.add_spell_to_rotation(RimeSpell.FROST_BOLT)
 
     # Sim Options - Uncomment one to run.
-    # average_dps(character,1)
-    average_dps(character, 5)
-    # stat_weights(character)
-    # debug_sim(character)
+    match args.simulation_type:
+        case "average_dps":
+            average_dps(character, args.enemy_count)
+        case "stat_weights":
+            stat_weights(character)
+        case "debug_sim":
+            debug_sim(character)
 
 
 def stat_weights(character: Character) -> None:
@@ -158,4 +162,28 @@ def average_dps(character: Character, enemy_count: int) -> float:
 
 
 if __name__ == "__main__":
-    main()
+    # Create parser for command line arguments.
+    parser = argparse.ArgumentParser(description="Simulate Rime DPS.")
+
+    parser.add_argument(
+        "-s",
+        "--simulation-type",
+        type=str,
+        default="average_dps",
+        help="Type of simulation to run.",
+        choices=["average_dps", "stat_weights", "debug_sim"],
+        required=True,
+    )
+    parser.add_argument(
+        "-e",
+        "--enemy-count",
+        type=int,
+        default=1,
+        help="Number of enemies to simulate.",
+    )
+
+    # Parse arguments.
+    args = parser.parse_args()
+
+    # Run the simulation.
+    main(args)
