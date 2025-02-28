@@ -9,5 +9,5 @@ class RimePreset(Enum):
     """Enum for Rime's presets."""
 
     DEFAULT = Character(
-        intellect=300, crit=160, expertise=90, haste=120, spirit=50
+        intellect=300, crit=90, expertise=160, haste=120, spirit=50
     )
