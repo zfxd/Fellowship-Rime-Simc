@@ -1,12 +1,12 @@
-"""Simulates the character's damage."""
+"""Simulates the character's damage output."""
 
 import random
-
+from copy import deepcopy
 from base import Character, Spell
 
 
 class Simulation:
-    """Simulates the character's damage."""
+    """Simulates the character's damage output."""
 
     def __init__(
         self,
@@ -14,6 +14,7 @@ class Simulation:
         duration: int,
         enemy_count: int = 1,
         do_debug: bool = True,
+        is_deterministic: bool = False,
     ):
         self.character = character
         self.time = 0
@@ -24,6 +25,11 @@ class Simulation:
         self.debuffs = []
         self.buffs = []
         self.enemy_count = enemy_count
+        self.is_deterministic = is_deterministic
+
+        if is_deterministic:
+            self.character.crit = 0
+            self.character.spirit = 0
 
     # Whenever we gain orbs, we want to cast 3 Anime Spikes.
     def gain_orb(self, do_spikes=True):
@@ -85,34 +91,59 @@ class Simulation:
         is_cast: bool = True,
     ):
         """Does damage to the enemy (dummy)"""
-        for buff in self.buffs[:]:
-            # If we have Wrath of Winter active. Deal 15% more damage.
-            if buff.name == "Wrath of Winter":
-                damage *= 1.15
-            if buff.name == "Ice Blitz":
-                if "Wisdom of the North" in self.character.talents:
-                    damage *= 1.25
-                else:
-                    damage *= 1.15
 
-        if (
-            spell.name in ("Soulfrost Torrent", "Freezing Torrent")
-            and "Chillblain" in self.character.talents
-        ):
-            damage *= 1.2
+        damage = self.apply_damage_multipliers(spell, damage)
+        self.apply_glacial_assault(spell)
+        self.update_spell_cooldowns(spell)
+        aoe_count = self.determine_aoe_count(spell)
 
-        if (
-            spell.name == "Bursting Ice"
-            and "Coalescing Ice" in self.character.talents
-        ):
-            damage *= 1.2
+        for i in range(aoe_count):
+            damage = self.apply_critical_hit(spell, damage)
+            damage = self.apply_aoe_damage_reduction(spell, damage, i)
+            self.total_damage += damage
+
+        self.manage_mana_and_orbs(spell, anima_gained, orb_cost)
+        self.handle_debug_output(spell, damage, is_cast)
+
+    def apply_damage_multipliers(self, spell: Spell, damage: float) -> float:
+        """Apply damage multipliers based on active buffs and talents."""
+
+        damage_multipliers = {
+            "Wrath of Winter": 1.15,
+            "Ice Blitz": (
+                1.25
+                if "Wisdom of the North" in self.character.talents
+                else 1.15
+            ),
+            "Soulfrost Torrent": (
+                1.2 if "Chillblain" in self.character.talents else 1.0
+            ),
+            "Freezing Torrent": (
+                1.2 if "Chillblain" in self.character.talents else 1.0
+            ),
+            "Bursting Ice": (
+                1.2 if "Coalescing Ice" in self.character.talents else 1.0
+            ),
+        }
+
+        for buff in self.buffs:
+            if buff.name in damage_multipliers:
+                damage *= damage_multipliers[buff.name]
 
         if "Avalanche" in self.character.talents and spell.name == "Ice Comet":
-            if random.uniform(0, 100) < 30:
-                if random.uniform(0, 100) < 8:
-                    damage *= 3
-                else:
-                    damage *= 2
+            # Multiply by:
+            # - 3x if the crit hits 8% of the time
+            # - 2x if it hits 30% of the time
+            # - 1x otherwise.
+            damage *= (
+                3
+                if random.uniform(0, 100) < 8
+                else 2 if random.uniform(0, 100) < 30 else 1
+            )
+        return damage
+
+    def apply_glacial_assault(self, spell: Spell) -> None:
+        """Apply Glacial Assault buff if conditions are met."""
 
         if (
             spell.name == "Cold Snap"
@@ -121,75 +152,88 @@ class Simulation:
             self.character.glacial_assault_buff.apply_debuff()
             self.buffs.append(self.character.glacial_assault_buff)
 
+    def update_spell_cooldowns(self, spell: Spell) -> None:
+        """Update cooldowns for specific spells."""
+
+        cooldown_updates = {
+            "Unrelenting Ice": ("Bursting Ice", 0.5),
+            "Icy Flow": ("Freezing Torrent", 0.2),
+        }
+
+        for talent, (spell_name, cooldown) in cooldown_updates.items():
+            if talent in self.character.talents and spell.name in (
+                "Soulfrost Torrent",
+                "Freezing Torrent",
+                "Anima Spikes",
+                "Dance of Swallows",
+            ):
+                for character_spell in self.character.rotation:
+                    if character_spell.name == spell_name:
+                        character_spell.update_cooldown(cooldown)
+
+    def determine_aoe_count(self, spell: Spell) -> int:
+        """Determine the number of targets affected by AoE spells."""
+
+        return {
+            "Ice Comet": self.enemy_count,
+            "Bursting Ice": self.enemy_count,
+            "Soulfrost Torrent": (
+                min(self.enemy_count, 5)
+                if "Chillblain" in self.character.talents
+                else 1
+            ),
+            "Freezing Torrent": (
+                min(self.enemy_count, 5)
+                if "Chillblain" in self.character.talents
+                else 1
+            ),
+        }.get(spell.name, 1)
+
+    def apply_critical_hit(self, spell: Spell, damage: float) -> float:
+        """Calculate and apply critical hit damage."""
+
+        crit_chance = self.character.crit
+        if "Soulfrost Torrent" in self.character.talents and spell.name in (
+            "Anima Spikes",
+            "Dance of Swallows",
+        ):
+            crit_chance += 10 if not self.is_deterministic else 0
         if (
-            spell.name in ("Soulfrost Torrent", "Freezing Torrent")
-            and "Unrelenting Ice" in self.character.talents
+            spell.name == "Glacial Blast"
+            and "Glacial Assault" in self.character.talents
         ):
-            # The previous name "spell" colidited with
-            # already defined variable.
-            for character_spell in self.character.rotation:
-                if character_spell.name == "Bursting Ice":
-                    character_spell.update_cooldown(0.5)
+            crit_chance += 20 if not self.is_deterministic else 0
 
-        if "Icy Flow" in self.character.talents and (
-            spell.name in ("Anima Spikes", "Dance of Swallows")
-        ):
-            # The previous name "spell" colidited with
-            # already defined variable.
-            for character_spell in self.character.rotation:
-                if character_spell.name == "Freezing Torrent":
-                    character_spell.update_cooldown(0.2)
+        if random.uniform(0, 100) < crit_chance:
+            damage *= 2
+            if (
+                "Soulfrost Torrent" in self.character.talents
+                and random.uniform(0, 100) < 25
+            ):
+                if not any(
+                    buff.name == "Soulfrost Torrent" for buff in self.buffs
+                ):
+                    self.character.soulfrost_buff.apply_debuff()
+                    self.buffs.append(self.character.soulfrost_buff)
+        return damage
 
-        aoe_count = 1
-        if spell.name == "Ice Comet":
-            aoe_count = self.enemy_count
+    def apply_aoe_damage_reduction(
+        self, spell: Spell, damage: float, index: int
+    ) -> float:
+        """Apply AoE damage reduction if applicable."""
+
         if (
             spell.name in ("Soulfrost Torrent", "Freezing Torrent")
             and "Chillblain" in self.character.talents
+            and index != 0
         ):
-            aoe_count = min(self.enemy_count, 5)
-        if spell.name == "Bursting Ice":
-            aoe_count = self.enemy_count
+            damage *= 0.2
+        return damage
 
-        for i in range(aoe_count):
-            # Crit Calcs
-            crit_chance = self.character.crit
-
-            # Check if Soulfrost Torrent to modify Anima Spikes.
-            if "Soulfrost Torrent" in self.character.talents and (
-                spell.name in ("Anima Spikes", "Dance of Swallows")
-            ):
-                crit_chance += 10
-            if (
-                spell.name == "Glacial Blast"
-                and "Glacial Assault" in self.character.talents
-            ):
-                crit_chance += 20
-
-            # Roll the Crit.
-            if random.uniform(0, 100) < crit_chance:
-                damage *= 2  # Critical hit
-                # Roll for Soulfrost Torrent buff.
-                can_apply = True
-                if (
-                    "Soulfrost Torrent" in self.character.talents
-                    and random.uniform(0, 100) < 25
-                ):
-                    for buff in self.buffs:
-                        if buff.name == "Soulfrost Torrent":
-                            can_apply = False
-                    if can_apply:
-                        self.character.soulfrost_buff.apply_debuff()
-                        self.buffs.append(self.character.soulfrost_buff)
-
-            # Do other stuff.
-            if (
-                spell.name in ("Soulfrost Torrent", "Freezing Torrent")
-                and "Chillblain" in self.character.talents
-                and i != 0
-            ):
-                damage = damage * 0.2
-            self.total_damage += damage
+    def manage_mana_and_orbs(
+        self, spell: Spell, anima_gained: float, orb_cost: int
+    ) -> None:
+        """Manage mana and orb resources."""
 
         if (
             spell.name == "Bursting Ice"
@@ -198,9 +242,10 @@ class Simulation:
         ):
             self.character.mana += 2
         self.character.mana += anima_gained
-        for buff in self.buffs[:]:
+
+        for buff in self.buffs:
             if buff.name == "Ice Blitz":
-                for i in range(int(anima_gained)):
+                for _ in range(int(anima_gained)):
                     damage = self.character.anima_spikes.damage(self.character)
                     self.total_damage += damage
                     if self.do_debug:
@@ -209,18 +254,6 @@ class Simulation:
                             + f"Cast {self.character.anima_spikes.name}, "
                             + f"dealing {damage:.2f} damage"
                         )
-
-        if self.do_debug:
-            if is_cast:
-                print(
-                    f"Time {self.time:.2f}: Your {spell.name} hit "
-                    + f"for {damage:.2f} damage"
-                )
-            else:
-                print(
-                    f"Time {self.time:.2f}: Your {spell.name} ticks "
-                    + f"for {damage:.2f} damage"
-                )
 
         if orb_cost < 0:
             self.gain_orb()
@@ -232,10 +265,21 @@ class Simulation:
             self.gain_orb()
 
         if spell.name == "Cold Snap":
-            for i in range(10):
+            for _ in range(10):
                 self.do_dance_of_swallows()
         if spell.name == "Freezing Torrent":
             self.do_dance_of_swallows()
+
+    def handle_debug_output(
+        self, spell: Spell, damage: float, is_cast: bool
+    ) -> None:
+        """Output debug information if debugging is enabled."""
+        if self.do_debug:
+            action = "hit" if is_cast else "ticks"
+            print(
+                f"Time {self.time:.2f}: Your {spell.name} {action} for "
+                + f"{damage:.2f} damage"
+            )
 
     def do_dance_of_swallows(self):
         """Handles the Dance of Swallows."""
@@ -310,16 +354,18 @@ class Simulation:
             spell.reset_cooldown()
 
         while self.time < self.duration:
-            spell = None
-
             if self.gcd > 0:
                 self.update_time(self.gcd)
 
             # Locate a spell that we can cast.
-            for candidate_spell in self.character.rotation:
-                if candidate_spell.is_ready(self.character, self.enemy_count):
-                    spell = candidate_spell
-                    break
+            spell = next(
+                (
+                    s
+                    for s in self.character.rotation
+                    if s.is_ready(self.character, self.enemy_count)
+                ),
+                None,
+            )
 
             if spell is None:
                 if self.do_debug:
@@ -328,36 +374,52 @@ class Simulation:
 
             self.gcd = 1.5 / (1 + self.character.haste / 100)
 
-            # Update the cooldown on the spell.
             if self.do_debug:
                 print(f"Time {self.time:.2f}: Cast {spell.name}.")
-            spell.set_cooldown()
 
-            # Check to see if replacing Freezing with Soulfrost Torrent
-            if spell.name == "Freezing Torrent":
-                for buff in self.buffs[:]:
-                    if buff.name == "Soulfrost Torrent":
-                        spell = self.character.soulfrost
-                        self.buffs.remove(buff)
+            non_boosted_spell = None
 
-            # Check to see if replacing Blast with Better Blast
-            glacial_assault_count = 0
-            if (
+            # Replace Freezing Torrent with Soulfrost if applicable
+            if spell.name == "Freezing Torrent" and any(
+                buff.name == "Soulfrost Torrent" for buff in self.buffs
+            ):
+                non_boosted_spell = deepcopy(spell)
+                spell = self.character.soulfrost
+                # Remove Soulfrost from buffs
+                self.buffs = [
+                    buff
+                    for buff in self.buffs
+                    if buff.name != "Soulfrost Torrent"
+                ]
+
+            # Replace Glacial Blast with Boosted Blast if applicable
+            elif (
                 spell.name == "Glacial Blast"
                 and "Glacial Assault" in self.character.talents
             ):
-                for buff in self.buffs:
-                    if buff.name == "Glacial Assault":
-                        glacial_assault_count += 1
+                glacial_assault_count = sum(
+                    1 for buff in self.buffs if buff.name == "Glacial Assault"
+                )
                 if glacial_assault_count == 5:
-                    for buff in self.buffs[:]:
-                        if buff.name == "Glacial Assault":
-                            self.buffs.remove(buff)
+                    self.buffs = [
+                        buff
+                        for buff in self.buffs
+                        if buff.name != "Glacial Assault"
+                    ]
+                    non_boosted_spell = deepcopy(spell)
                     spell = self.character.boosted_blast
 
             self.update_time(0.01)
 
             if spell.channeled:
+                # Cast -> Cooldown Starst -> Channel Starts
+                # -> Channel Finished -> Done.
+
+                if non_boosted_spell:
+                    non_boosted_spell.set_cooldown()
+                else:
+                    spell.set_cooldown()
+
                 for _ in range(spell.ticks):
                     self.do_damage(
                         spell,
@@ -379,7 +441,11 @@ class Simulation:
                         self.time + spell.debuff_duration / spell.ticks
                     )
                 self.debuffs.append(spell)
+
             elif spell.is_buff:
+                # Cast -> Cast Duration Starts -> "Hits"
+                # -> Cooldown Starts -> Done
+
                 self.update_time(spell.effective_cast_time(self.character))
                 # Lazy coding
                 spell.apply_debuff()
@@ -392,7 +458,15 @@ class Simulation:
                 # Hacky Buff Coding
                 if spell.name == "Wrath of Winter":
                     self.character.haste += 30
+
+                if non_boosted_spell:
+                    non_boosted_spell.set_cooldown()
+                else:
+                    spell.set_cooldown()
             else:
+                # Cast -> Cast Duration Starts -> "Hits"
+                # -> Cooldown Starts -> Done
+
                 self.update_time(spell.effective_cast_time(self.character))
                 self.do_damage(
                     spell,
@@ -401,7 +475,13 @@ class Simulation:
                     spell.winter_orb_cost,
                 )
 
+                if non_boosted_spell:
+                    non_boosted_spell.set_cooldown()
+                else:
+                    spell.set_cooldown()
+
         dps = self.total_damage / self.duration
         if self.do_debug:
             print(f"Total Damage: {self.total_damage:.2f}, DPS: {dps:.2f}")
+
         return dps
