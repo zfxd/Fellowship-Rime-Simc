@@ -84,15 +84,15 @@ def main(arguments: argparse.Namespace):
     # Sim Options - Uncomment one to run.
     match arguments.simulation_type:
         case "average_dps":
-            average_dps(character, arguments.enemy_count)
+            average_dps(character, arguments.duration, arguments.enemy_count)
         case "stat_weights":
-            stat_weights(character, arguments.enemy_count)
+            stat_weights(character, arguments.duration, arguments.enemy_count)
         case "debug_sim":
-            debug_sim(character, arguments.enemy_count)
+            debug_sim(character, arguments.duration, arguments.enemy_count)
 
 
 def stat_weights(
-    character: Character, enemy_count: Optional[int] = None
+    character: Character, duration: int, enemy_count: Optional[int] = None
 ) -> None:
     """Calculates the stat weights of the character."""
 
@@ -100,7 +100,7 @@ def stat_weights(
     stat_increase = 200
     target_count = 4 if enemy_count is None else enemy_count
     character_base = character
-    base_dps = average_dps(character_base, target_count, "base")
+    base_dps = average_dps(character_base, duration, target_count, "base")
 
     def update_stats(
         character: Character, stat_increase: int, stat_name: str
@@ -134,7 +134,12 @@ def stat_weights(
             ),
         )
 
-        return average_dps(character_updated, target_count, stat_name)
+        return average_dps(
+            character_updated,
+            duration,
+            target_count,
+            stat_name,
+        )
 
     int_dps = update_stats(character, stat_increase, "intellect")
     crit_dps = update_stats(character, stat_increase, "crit")
@@ -152,14 +157,14 @@ def stat_weights(
     print("--------------")
 
 
-def debug_sim(character: Character, enemy_count: int) -> None:
+def debug_sim(character: Character, duration: int, enemy_count: int) -> None:
     """Runs a debug simulation.
     Creates a deterministic simulation with 0 crit and spirit.
     """
 
     sim = Simulation(
         character,
-        duration=120,
+        duration=duration,
         enemy_count=enemy_count,
         do_debug=True,
         is_deterministic=True,
@@ -168,7 +173,10 @@ def debug_sim(character: Character, enemy_count: int) -> None:
 
 
 def average_dps(
-    character: Character, enemy_count: int, stat_name: Optional[str] = None
+    character: Character,
+    duration: int,
+    enemy_count: int,
+    stat_name: Optional[str] = None,
 ) -> float:
     """Runs a simulation and returns the average DPS."""
 
@@ -177,17 +185,17 @@ def average_dps(
 
     run_count = 2000
     dps_running_total = 0
-    dps_lowest = 1000000
-    dps_highest = 0
+    dps_lowest = float("inf")
+    dps_highest = float("-inf")
+
     for _ in range(run_count):
-        # NOTE: This is a shallow copy, not deep copy.
-        # Review if this is intented :)
         character_copy = deepcopy(character)
         sim = Simulation(
             character_copy,
-            duration=180,
+            duration=duration,
             enemy_count=enemy_count,
             do_debug=False,
+            is_deterministic=True,
         )
         dps = sim.run()
         dps_lowest = min(dps, dps_lowest)
@@ -248,6 +256,13 @@ if __name__ == "__main__":
         default="",
         help="Custom character to use. "
         + "Format: intellect-crit-expertise-haste-spirit",
+    )
+    parser.add_argument(
+        "-d",
+        "--duration",
+        type=int,
+        default=120,
+        help="Duration of the simulation.",
     )
 
     # Parse arguments.
