@@ -2,7 +2,7 @@
 
 import argparse
 from typing import Optional
-from copy import copy
+from copy import deepcopy
 
 from base import Character
 from characters.Rime import RimeSpell, RimeTalent
@@ -74,8 +74,6 @@ def main(arguments: argparse.Namespace):
     character.add_spell_to_rotation(RimeSpell.WRATH_OF_WINTER)
     character.add_spell_to_rotation(RimeSpell.ICE_BLITZ)
     character.add_spell_to_rotation(RimeSpell.DANCE_OF_SWALLOWS)
-    # character.add_spell(RimeSpell.ICE_COMET)
-    # character.add_spell(RimeSpell.GLACIAL_BLAST)
     character.add_spell_to_rotation(RimeSpell.COLD_SNAP)
     character.add_spell_to_rotation(RimeSpell.BURSTING_ICE)
     character.add_spell_to_rotation(RimeSpell.FREEZING_TORRENT)
@@ -178,7 +176,7 @@ def average_dps(
     for _ in range(run_count):
         # NOTE: This is a shallow copy, not deep copy.
         # Review if this is intented :)
-        character_copy = copy(character)
+        character_copy = deepcopy(character)
         sim = Simulation(
             character_copy,
             duration=180,
