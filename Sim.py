@@ -442,6 +442,11 @@ class Simulation:
                     )
                 self.debuffs.append(spell)
 
+                if non_boosted_spell:
+                    non_boosted_spell.set_cooldown()
+                else:
+                    spell.set_cooldown()
+
             elif spell.is_buff:
                 # Cast -> Cast Duration Starts -> "Hits"
                 # -> Cooldown Starts -> Done
