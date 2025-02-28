@@ -1,11 +1,13 @@
+"""Simulates the character's damage."""
+
 import random
 
 from base import Character, Spell
 
-# from copy import copy
-
 
 class Simulation:
+    """Simulates the character's damage."""
+
     def __init__(
         self,
         character: Character,
@@ -47,7 +49,8 @@ class Simulation:
 
         # If we are capped on Orbs, cap on 5.
         if self.character.winter_orbs > 5:
-            print("Over capped on Orbs")
+            if self.do_debug:
+                print("Over capped on Orbs")
             self.character.winter_orbs = 5
 
     def lose_orb(self, orb_cost):

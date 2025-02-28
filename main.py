@@ -53,7 +53,7 @@ def main(arguments: argparse.Namespace):
             haste=stats[3],
             spirit=stats[4],
         )
-    if arguments.preset:
+    elif arguments.preset:
         # Use preset if provided.
         character = RimePreset[arguments.preset].value
     else:
@@ -88,19 +88,21 @@ def main(arguments: argparse.Namespace):
         case "average_dps":
             average_dps(character, arguments.enemy_count)
         case "stat_weights":
-            stat_weights(character)
+            stat_weights(character, arguments.enemy_count)
         case "debug_sim":
-            debug_sim(character)
+            debug_sim(character, arguments.enemy_count)
 
 
-def stat_weights(character: Character) -> None:
+def stat_weights(
+    character: Character, enemy_count: Optional[int] = None
+) -> None:
     """Calculates the stat weights of the character."""
 
     print("==== Doing Stat Weights ==== ")
     stat_increase = 200
-    target_count = 4
+    target_count = 4 if enemy_count is None else enemy_count
     character_base = character
-    base_dps = average_dps(character_base, target_count)
+    base_dps = average_dps(character_base, target_count, "base")
 
     def update_stats(
         character: Character, stat_increase: int, stat_name: str
@@ -152,10 +154,12 @@ def stat_weights(character: Character) -> None:
     print("--------------")
 
 
-def debug_sim(character: Character) -> None:
+def debug_sim(character: Character, enemy_count: int) -> None:
     """Runs a debug simulation."""
 
-    sim = Simulation(character, duration=120, do_debug=True)
+    sim = Simulation(
+        character, duration=120, enemy_count=enemy_count, do_debug=True
+    )
     sim.run()
 
 
@@ -214,6 +218,7 @@ if __name__ == "__main__":
         type=int,
         default=1,
         help="Number of enemies to simulate.",
+        required=True,
     )
     parser.add_argument(
         "-t",

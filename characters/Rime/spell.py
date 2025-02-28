@@ -77,7 +77,7 @@ class RimeSpell(Enum):
         cooldown=15,
         mana_generation=6,
         winter_orb_cost=0,
-        damage_percent=390,
+        damage_percent=366,
         is_debuff=True,
         ticks=6,
         debuff_duration=3,
@@ -114,11 +114,11 @@ class RimeSpell(Enum):
         "Soulfrost Torrent",
         cast_time=4.0,
         cooldown=10,
-        mana_generation=12,
+        mana_generation=11,
         winter_orb_cost=0,
-        damage_percent=1560,  # Damage is set to 1560 because of ingame bug.
+        damage_percent=1430,  # Damage is set to 1560 because of ingame bug.
         channeled=True,
-        ticks=12,
+        ticks=11,
     )
 
 
@@ -147,5 +147,5 @@ class RimeBuff(Enum):
         cooldown=0,
         mana_generation=0,
         winter_orb_cost=2,
-        damage_percent=604,
+        damage_percent=1008,
     )

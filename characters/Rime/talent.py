@@ -20,8 +20,8 @@ class RimeTalent(Enum):
     GLACIAL_ASSAULT = Talent("1.3", "Glacial Assault")
     UNRELENTING_ICE = Talent("2.1", "Unrelenting Ice")
     ICY_FLOW = Talent("2.2", "Icy Flow")
-    WISDOM_OF_THE_NORTH = Talent("3.1", "Wisdom of the North")
-    AVALANCHE = Talent("3.2", "Avalanche")
+    AVALANCHE = Talent("3.1", "Avalanche")
+    WISDOM_OF_THE_NORTH = Talent("3.2", "Wisdom of the North")
     SOULFROST_TORRENT = Talent("3.3", "Soulfrost Torrent")
 
     @classmethod
