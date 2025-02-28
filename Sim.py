@@ -1,7 +1,7 @@
 """Simulates the character's damage output."""
 
 import random
-
+from copy import deepcopy
 from base import Character, Spell
 
 
@@ -376,12 +376,14 @@ class Simulation:
 
             if self.do_debug:
                 print(f"Time {self.time:.2f}: Cast {spell.name}.")
-            spell.set_cooldown()  # NOTE: Cooldown on cast?
+
+            non_boosted_spell = None
 
             # Replace Freezing Torrent with Soulfrost if applicable
             if spell.name == "Freezing Torrent" and any(
                 buff.name == "Soulfrost Torrent" for buff in self.buffs
             ):
+                non_boosted_spell = deepcopy(spell)
                 spell = self.character.soulfrost
                 # Remove Soulfrost from buffs
                 self.buffs = [
@@ -391,7 +393,7 @@ class Simulation:
                 ]
 
             # Replace Glacial Blast with Boosted Blast if applicable
-            if (
+            elif (
                 spell.name == "Glacial Blast"
                 and "Glacial Assault" in self.character.talents
             ):
@@ -404,11 +406,20 @@ class Simulation:
                         for buff in self.buffs
                         if buff.name != "Glacial Assault"
                     ]
+                    non_boosted_spell = deepcopy(spell)
                     spell = self.character.boosted_blast
 
             self.update_time(0.01)
 
             if spell.channeled:
+                # Cast -> Cooldown Starst -> Channel Starts
+                # -> Channel Finished -> Done.
+
+                if non_boosted_spell:
+                    non_boosted_spell.set_cooldown()
+                else:
+                    spell.set_cooldown()
+
                 for _ in range(spell.ticks):
                     self.do_damage(
                         spell,
@@ -432,6 +443,9 @@ class Simulation:
                 self.debuffs.append(spell)
 
             elif spell.is_buff:
+                # Cast -> Cast Duration Starts -> "Hits"
+                # -> Cooldown Starts -> Done
+
                 self.update_time(spell.effective_cast_time(self.character))
                 # Lazy coding
                 spell.apply_debuff()
@@ -445,7 +459,14 @@ class Simulation:
                 if spell.name == "Wrath of Winter":
                     self.character.haste += 30
 
+                if non_boosted_spell:
+                    non_boosted_spell.set_cooldown()
+                else:
+                    spell.set_cooldown()
             else:
+                # Cast -> Cast Duration Starts -> "Hits"
+                # -> Cooldown Starts -> Done
+
                 self.update_time(spell.effective_cast_time(self.character))
                 self.do_damage(
                     spell,
@@ -453,6 +474,11 @@ class Simulation:
                     spell.mana_generation,
                     spell.winter_orb_cost,
                 )
+
+                if non_boosted_spell:
+                    non_boosted_spell.set_cooldown()
+                else:
+                    spell.set_cooldown()
 
         dps = self.total_damage / self.duration
         if self.do_debug:
