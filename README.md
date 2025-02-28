@@ -6,16 +6,15 @@ This project is a simple DPS simulator for the game Fellowship. It is a work in 
 
 Currently working on:
 
-| Feature         | Status            |
-| --------------- | ----------------- |
-| AoE DPS         | ⚙️ In Progress     |
-| Rotation Opener | 💡 To be Discussed |
-
-## 📝 Notes
-
-I wont offer any help running or using this software. If you are unfamiliar with Python, I'm sorry but I can't help.
+| Feature               | Status             |
+| --------------------- | ------------------ |
+| SimC-like integration | ⚙️ Rough Draft     |
+| Rotation Opener       | 💡 To be Discussed |
 
 ## 🚀 How to Run
+
+> [!TIP]
+> @Toonic: _I wont offer any help running or using this software. If you are unfamiliar with Python, I'm sorry but I can't help._
 
 The program supports multiple arguments:
 
@@ -36,3 +35,8 @@ python main.py -s average_dps -e 5 -t 2-12-3 -p default -c 100-20-30-40-50
 ```
 
 This will run the average DPS simulation with 5 enemies, using the default preset and a custom character with 100 intellect, 20 crit, 30 expertise, 40 haste, and 50 spirit.
+
+## 👑 Hall of Fame / Credits
+
+- [@michaelsherwood](https://github.com/michaelsherwood) - Progress Bar + Pretty print idea
+  > Thank you for such early idea 🙏
