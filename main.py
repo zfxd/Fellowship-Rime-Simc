@@ -167,7 +167,7 @@ def debug_sim(character: Character, duration: int, enemy_count: int) -> None:
         duration=duration,
         enemy_count=enemy_count,
         do_debug=True,
-        is_deterministic=True,
+        is_deterministic=False,
     )
     sim.run()
 
@@ -195,7 +195,7 @@ def average_dps(
             duration=duration,
             enemy_count=enemy_count,
             do_debug=False,
-            is_deterministic=True,
+            is_deterministic=False,
         )
         dps = sim.run()
         dps_lowest = min(dps, dps_lowest)
