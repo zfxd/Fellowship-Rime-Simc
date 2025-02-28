@@ -400,7 +400,7 @@ class Simulation:
                 glacial_assault_count = sum(
                     1 for buff in self.buffs if buff.name == "Glacial Assault"
                 )
-                if glacial_assault_count == 5:
+                if glacial_assault_count == 4:
                     self.buffs = [
                         buff
                         for buff in self.buffs
