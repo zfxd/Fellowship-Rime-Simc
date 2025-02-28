@@ -153,10 +153,16 @@ def stat_weights(
 
 
 def debug_sim(character: Character, enemy_count: int) -> None:
-    """Runs a debug simulation."""
+    """Runs a debug simulation.
+    Creates a deterministic simulation with 0 crit and spirit.
+    """
 
     sim = Simulation(
-        character, duration=120, enemy_count=enemy_count, do_debug=True
+        character,
+        duration=120,
+        enemy_count=enemy_count,
+        do_debug=True,
+        is_deterministic=True,
     )
     sim.run()
 
