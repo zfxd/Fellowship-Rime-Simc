@@ -3,6 +3,16 @@
 import argparse
 from typing import Optional
 from copy import deepcopy
+from rich.table import Table, box
+from rich.console import Console
+from rich.progress import (
+    Progress,
+    BarColumn,
+    TextColumn,
+    TimeElapsedColumn,
+    TimeRemainingColumn,
+    MofNCompleteColumn,
+)
 
 from base import Character
 from characters.Rime import RimeSpell, RimeTalent
@@ -19,9 +29,23 @@ def main(arguments: argparse.Namespace):
             + "Please provide only one."
         )
 
-    print("------------------")
-    print(" Starting new Sim")
-    print("------------------")
+    print()
+
+    console = Console()
+    table = Table(title="Rime DPS Simulation", box=box.SIMPLE)
+    table.add_column(
+        "Attribute", style="blue", justify="center", vertical="middle"
+    )
+    table.add_column("Value", style="yellow", justify="center")
+
+    table.add_row("Simulation Type", arguments.simulation_type)
+    table.add_row("Enemy Count", str(arguments.enemy_count))
+    table.add_row("Duration", str(arguments.duration))
+    table.add_row(
+        "Preset",
+        arguments.preset if arguments.preset else RimePreset.DEFAULT.name,
+        end_section=True,
+    )
 
     if arguments.custom_character:
         try:
@@ -81,26 +105,61 @@ def main(arguments: argparse.Namespace):
     character.add_spell_to_rotation(RimeSpell.GLACIAL_BLAST)
     character.add_spell_to_rotation(RimeSpell.FROST_BOLT)
 
+    table.add_row(
+        "Talent Tree",
+        "\n".join(character.talents) if character.talents else "N/A",
+        end_section=True,
+    )
+    table.add_row(
+        "Custom Character",
+        (
+            "\n".join(
+                f"{key}: {value}"
+                for key, value in {
+                    "int": character.intellect_points,
+                    "crit": character.crit_points,
+                    "exp": character.expertise_points,
+                    "haste": character.haste_points,
+                    "spirit": character.spirit_points,
+                }.items()
+            )
+            if arguments.custom_character
+            else "N/A"
+        ),
+        end_section=True,
+    )
+
     # Sim Options - Uncomment one to run.
     match arguments.simulation_type:
         case "average_dps":
-            average_dps(character, arguments.duration, arguments.enemy_count)
+            average_dps(
+                table, character, arguments.duration, arguments.enemy_count
+            )
         case "stat_weights":
-            stat_weights(character, arguments.duration, arguments.enemy_count)
+            stat_weights(
+                table, character, arguments.duration, arguments.enemy_count
+            )
         case "debug_sim":
             debug_sim(character, arguments.duration, arguments.enemy_count)
 
+    # Print the final results
+    console.print(table)
+
 
 def stat_weights(
-    character: Character, duration: int, enemy_count: Optional[int] = None
+    table: Table,
+    character: Character,
+    duration: int,
+    enemy_count: Optional[int] = None,
 ) -> None:
     """Calculates the stat weights of the character."""
 
-    print("==== Doing Stat Weights ==== ")
     stat_increase = 200
     target_count = 4 if enemy_count is None else enemy_count
     character_base = character
-    base_dps = average_dps(character_base, duration, target_count, "base")
+    base_dps = average_dps(
+        table, character_base, duration, target_count, "base"
+    )
 
     def update_stats(
         character: Character, stat_increase: int, stat_name: str
@@ -135,6 +194,7 @@ def stat_weights(
         )
 
         return average_dps(
+            table,
             character_updated,
             duration,
             target_count,
@@ -147,14 +207,23 @@ def stat_weights(
     haste_dps = update_stats(character, stat_increase, "haste")
     spirit_dps = update_stats(character, stat_increase, "spirit")
 
-    print("--------------")
-    print("Stat Weights:")
-    print(f"Intellect: {1 + ((int_dps - base_dps) / base_dps):.2f}")
-    print(f"Crit: {1 + ((crit_dps - base_dps) / base_dps):.2f}")
-    print(f"Expertise: {1 + ((expertise_dps - base_dps) / base_dps):.2f}")
-    print(f"Haste: {1 + ((haste_dps - base_dps) / base_dps):.2f}")
-    print(f"Spirit: {1 + ((spirit_dps - base_dps) / base_dps):.2f}")
-    print("--------------")
+    table.add_row("Stat Weights", "[white]-------------")
+    table.add_row(
+        "Intellect", f"[magenta]{1 + ((int_dps - base_dps) / base_dps):.2f}"
+    )
+    table.add_row(
+        "Crit", f"[magenta]{1 + ((crit_dps - base_dps) / base_dps):.2f}"
+    )
+    table.add_row(
+        "Expertise",
+        f"[magenta]{1 + ((expertise_dps - base_dps) / base_dps):.2f}",
+    )
+    table.add_row(
+        "Haste", f"[magenta]{1 + ((haste_dps - base_dps) / base_dps):.2f}"
+    )
+    table.add_row(
+        "Spirit", f"[magenta]{1 + ((spirit_dps - base_dps) / base_dps):.2f}"
+    )
 
 
 def debug_sim(character: Character, duration: int, enemy_count: int) -> None:
@@ -173,6 +242,7 @@ def debug_sim(character: Character, duration: int, enemy_count: int) -> None:
 
 
 def average_dps(
+    table: Table,
     character: Character,
     duration: int,
     enemy_count: int,
@@ -180,33 +250,59 @@ def average_dps(
 ) -> float:
     """Runs a simulation and returns the average DPS."""
 
-    if stat_name:
-        print(f"Stat Weight: {stat_name}\n-------------")
+    with Progress(
+        TextColumn(
+            f"[bold]{stat_name if stat_name else 'Calculating DPS'}[/bold] "
+            + "[progress.percentage]{task.percentage:>3.0f}%"
+        ),
+        BarColumn(),
+        MofNCompleteColumn(),
+        TextColumn("•"),
+        TimeElapsedColumn(),
+        TextColumn("•"),
+        TimeRemainingColumn(),
+    ) as progress:
+        run_count = 2000
+        dps_running_total = 0
+        dps_lowest = float("inf")
+        dps_highest = float("-inf")
 
-    run_count = 2000
-    dps_running_total = 0
-    dps_lowest = float("inf")
-    dps_highest = float("-inf")
+        task = progress.add_task(f"{stat_name}", total=run_count)
 
-    for _ in range(run_count):
-        character_copy = deepcopy(character)
-        sim = Simulation(
-            character_copy,
-            duration=duration,
-            enemy_count=enemy_count,
-            do_debug=False,
-            is_deterministic=False,
-        )
-        dps = sim.run()
-        dps_lowest = min(dps, dps_lowest)
-        dps_highest = max(dps, dps_highest)
+        for _ in range(run_count):
+            character_copy = deepcopy(character)
+            sim = Simulation(
+                character_copy,
+                duration=duration,
+                enemy_count=enemy_count,
+                do_debug=False,
+                is_deterministic=False,
+            )
+            dps = sim.run()
 
-        dps_running_total += dps
-    avg_dps = dps_running_total / run_count
+            progress.update(task, advance=1)
 
-    print(f"Highest DPS: {dps_highest:.2f}")
-    print(f"Average DPS: {avg_dps:.2f}")
-    print(f"Lowest DPS: {dps_lowest:.2f}\n")
+            dps_lowest = min(dps, dps_lowest)
+            dps_highest = max(dps, dps_highest)
+
+            dps_running_total += dps
+        avg_dps = dps_running_total / run_count
+
+        progress.update(task, visible=False)
+
+    table.add_row(
+        "Average DPS" if not stat_name else f"Average DPS ({stat_name})",
+        f"[bold magenta]{avg_dps:.2f}",
+    )
+    table.add_row(
+        "Lowest DPS" if not stat_name else f"Lowest DPS ({stat_name})",
+        f"[bold magenta]{dps_lowest:.2f}",
+    )
+    table.add_row(
+        "Highest DPS" if not stat_name else f"Highest DPS ({stat_name})",
+        f"[bold magenta]{dps_highest:.2f}",
+        end_section=True,
+    )
 
     return avg_dps
 
